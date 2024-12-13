@@ -29,15 +29,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Permission } from "@prisma/client";
-import { fetchApi } from "@/lib/fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
-
-const formSchema = z.object({
-  name: z.string().min(1, "名称不能为空"),
-  code: z.string().min(1, "权限代码不能为空"),
-  description: z.string().optional(),
-});
+import { permissionFormSchema } from "@/schemas";
+import { createPermission, updatePermission } from "@/api/permissions";
 
 interface PermissionFormProps {
   open: boolean;
@@ -56,8 +51,8 @@ export function PermissionForm({
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof permissionFormSchema>>({
+    resolver: zodResolver(permissionFormSchema),
     defaultValues: {
       name: "",
       code: "",
@@ -81,21 +76,13 @@ export function PermissionForm({
     }
   }, [form, initialData]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof permissionFormSchema>) => {
     try {
       setLoading(true);
       if (initialData) {
-        await fetchApi({
-          url: `/api/permissions/${initialData.id}`,
-          method: "PATCH",
-          body: values,
-        });
+        await updatePermission(initialData.id, values);
       } else {
-        await fetchApi({
-          url: "/api/permissions",
-          method: "POST",
-          body: values,
-        });
+        await createPermission(values);
       }
       toast({
         title: t("common.success"),

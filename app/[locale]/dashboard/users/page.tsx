@@ -8,7 +8,6 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { fetchApi } from "@/lib/fetch";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -34,10 +33,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-
-interface UserWithRole extends User {
-  role: Role;
-}
+import { deleteUser, getUsers, UserWithRole } from "@/api/users";
+import { getRoles } from "@/api/roles";
 
 export default function UsersPage() {
   const t = useTranslations();
@@ -51,10 +48,8 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     try {
-      const data = await fetchApi<UserWithRole[]>({
-        url: "/api/users",
-      });
-      setUsers(data);
+      const users = await getUsers();
+      setUsers(users);
     } catch (error) {
       console.error("Failed to fetch users:", error);
       toast({
@@ -69,10 +64,8 @@ export default function UsersPage() {
 
   const fetchRoles = async () => {
     try {
-      const data = await fetchApi<Role[]>({
-        url: "/api/roles",
-      });
-      setRoles(data);
+      const roles = await getRoles();
+      setRoles(roles);
     } catch (error) {
       console.error("Failed to fetch roles:", error);
     }
@@ -86,10 +79,7 @@ export default function UsersPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetchApi({
-        url: `/api/users/${deleteId}`,
-        method: "DELETE",
-      });
+      await deleteUser(deleteId);
       toast({
         title: t("common.success"),
         description: t("dashboard.users.deleteSuccess"),

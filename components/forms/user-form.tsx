@@ -32,13 +32,8 @@ import { Role, User } from "@prisma/client";
 import { fetchApi } from "@/lib/fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
-
-const formSchema = z.object({
-  name: z.string().min(1, "名称不能为空"),
-  email: z.string().email("请输入有效的邮箱地址"),
-  password: z.string().min(6, "密码至少6位").optional(),
-  roleId: z.string().min(1, "请选择角色"),
-});
+import { userFormSchema } from "@/schemas";
+import { createUser, updateUser } from "@/api/users";
 
 interface UserFormProps {
   open: boolean;
@@ -61,8 +56,8 @@ export function UserForm({
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof userFormSchema>>({
+    resolver: zodResolver(userFormSchema),
     defaultValues: {
       name: "",
       email: "",
@@ -88,21 +83,13 @@ export function UserForm({
     }
   }, [form, initialData]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof userFormSchema>) => {
     try {
       setLoading(true);
       if (initialData) {
-        await fetchApi({
-          url: `/api/users/${initialData.id}`,
-          method: "PATCH",
-          body: values,
-        });
+        await updateUser(initialData.id, values);
       } else {
-        await fetchApi({
-          url: "/api/users",
-          method: "POST",
-          body: values,
-        });
+        await createUser(values);
       }
       toast({
         title: t("common.success"),

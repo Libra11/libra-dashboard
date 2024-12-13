@@ -2,8 +2,8 @@
  * Author: Libra
  * Date: 2024-12-02 16:35:31
  * LastEditors: Libra
- * Description: 
-*/
+ * Description:
+ */
 "use client";
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";
@@ -24,7 +24,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <NextThemesProvider
       attribute="class"
-      defaultTheme="system"
+      defaultTheme="light"
       enableSystem
       disableTransitionOnChange
     >

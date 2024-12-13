@@ -30,26 +30,15 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import { fetchApi } from "@/lib/fetch";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { getUserMenus } from "@/api/menus";
+import { Menu } from "@prisma/client";
 
-interface MenuItem {
-  id: string;
-  name: string;
-  path: string;
-  icon: string;
-  sort: number;
-  parentId: string | null;
-  isVisible: boolean;
-  isDynamic: boolean;
-  dynamicName: string;
-}
-
-interface MenuTreeItem extends MenuItem {
+interface MenuTreeItem extends Menu {
   children: MenuTreeItem[];
 }
 
@@ -58,17 +47,15 @@ export function AppSidebar() {
   const { locale } = useLocaleStore();
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuItems, setMenuItems] = useState<Menu[]>([]);
 
   // 获取菜单数据
   useEffect(() => {
     const fetchMenus = async () => {
       if (session?.user?.id) {
         try {
-          const data = await fetchApi<{ menus: MenuItem[] }>({
-            url: "/api/menus/user",
-          });
-          setMenuItems(data.menus);
+          const menus = await getUserMenus();
+          setMenuItems(menus);
         } catch (error) {
           console.error("Error fetching menus:", error);
           setMenuItems([]);
@@ -80,7 +67,7 @@ export function AppSidebar() {
   }, [session]);
 
   // 构建菜单树
-  const createTreeMenu = (items: MenuItem[]): MenuTreeItem[] => {
+  const createTreeMenu = (items: Menu[]): MenuTreeItem[] => {
     const menuMap = new Map<string, MenuTreeItem>();
     const tree: MenuTreeItem[] = [];
 
@@ -126,13 +113,6 @@ export function AppSidebar() {
             </CollapsibleTrigger>
             <CollapsibleContent>
               <SidebarMenuSub>
-                {/* 添加根菜单自身作为第一个子项 */}
-                <SidebarMenuSubItem key={`${item.id}-self`}>
-                  <Link href={getLocalizedUrl(item.path)}>
-                    <span>{t(item.name)}</span>
-                  </Link>
-                </SidebarMenuSubItem>
-                {/* 渲染其他子菜单 */}
                 {item.children
                   .sort((a, b) => a.sort - b.sort)
                   .map((child) => (
@@ -161,7 +141,7 @@ export function AppSidebar() {
   };
   const menuTree = createTreeMenu(menuItems);
   return (
-    <Sidebar>
+    <Sidebar variant="floating">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>{t("nav.title")}</SidebarGroupLabel>

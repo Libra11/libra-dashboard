@@ -51,12 +51,13 @@ export async function PUT(
       return NextResponse.json({ message: "未授权" }, { status: 401 });
     }
 
-    const { name, permissionIds, menuIds } = await req.json();
+    const { name, permissionIds, menuIds, description } = await req.json();
 
     const role = await prisma.role.update({
       where: { id },
       data: {
         name,
+        description,
         permissions: {
           set: [], // 先清空所有权限
           connect: permissionIds.map((id: string) => ({ id })), // 重新连接新的权限

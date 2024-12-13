@@ -15,14 +15,16 @@ export default async function DashboardLayout({
 }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <div className="w-[16rem]">
-          <AppSidebar />
+      <div className="flex h-screen w-screen p-8">
+        <div className="rounded-3xl flex bg-red-300 w-full h-full">
+          <div className="w-[16rem]">
+            <AppSidebar />
+          </div>
+          <main className="flex-1 overflow-auto p-8">
+            <SidebarTrigger />
+            <PermissionGuard>{children}</PermissionGuard>
+          </main>
         </div>
-        <main className="flex-1 overflow-auto p-8">
-          <SidebarTrigger />
-          <PermissionGuard>{children}</PermissionGuard>
-        </main>
       </div>
     </SidebarProvider>
   );

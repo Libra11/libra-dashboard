@@ -5,9 +5,9 @@
  * @Description: 主题管理
  */
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 
-type Mode = "light" | "dark" | "system";
+type Mode = "light" | "dark";
 
 const DEFAULT_COLOR_THEME = "blue";
 
@@ -26,15 +26,19 @@ export const useThemeStore = create<ThemeState>()(
         document.documentElement.setAttribute("data-theme", theme);
         set({ colorTheme: theme });
       },
-      mode: "system" as const,
-      setMode: (mode: Mode) => set({ mode }),
+      mode: "light" as const,
+      setMode: (mode: Mode) => {
+        console.log("setMode", mode);
+        document.documentElement.classList.toggle("dark", mode === "dark");
+        set({ mode });
+      },
     }),
     {
       name: "theme-storage",
-      partialize: (state) => ({
-        colorTheme: state.colorTheme,
-        mode: state.mode,
-      }),
+      storage: createJSONStorage(() => localStorage),
+      onRehydrateStorage: () => (state) => {
+        console.log("Rehydrated state:", state);
+      },
     }
   )
 );

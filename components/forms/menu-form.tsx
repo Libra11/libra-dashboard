@@ -35,20 +35,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Menu } from "@prisma/client";
-import { fetchApi } from "@/lib/fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
-
-const formSchema = z.object({
-  name: z.string().min(1, "名称不能为空"),
-  path: z.string().min(1, "路径不能为空"),
-  icon: z.string().optional(),
-  sort: z.coerce.number().min(0, "排序不能小于0"),
-  parentId: z.string().nullable(),
-  isVisible: z.boolean(),
-  isDynamic: z.boolean(),
-  dynamicName: z.string().default("id"),
-});
+import { useEffect } from "react";
+import { menuFormSchema } from "@/schemas";
+import { createMenu, updateMenu } from "@/api/menus";
 
 interface MenuFormProps {
   open: boolean;
@@ -69,8 +60,8 @@ export function MenuForm({
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof menuFormSchema>>({
+    resolver: zodResolver(menuFormSchema),
     defaultValues: {
       name: initialData?.name || "",
       path: initialData?.path || "",
@@ -82,6 +73,15 @@ export function MenuForm({
       dynamicName: initialData?.dynamicName || "id",
     },
   });
+
+  useEffect(() => {
+    const subscription = form.watch((value, { name }) => {
+      if (name === "isDynamic" && value.isDynamic) {
+        form.setValue("isVisible", false);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [form]);
 
   React.useEffect(() => {
     if (initialData) {
@@ -109,21 +109,13 @@ export function MenuForm({
     }
   }, [form, initialData]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof menuFormSchema>) => {
     try {
       setLoading(true);
       if (initialData) {
-        await fetchApi({
-          url: `/api/menus/${initialData.id}`,
-          method: "PATCH",
-          body: JSON.stringify(values),
-        });
+        await updateMenu(initialData.id, values);
       } else {
-        await fetchApi({
-          url: "/api/menus",
-          method: "POST",
-          body: JSON.stringify(values),
-        });
+        await createMenu(values);
       }
       toast({
         title: t("common.success"),
@@ -256,6 +248,7 @@ export function MenuForm({
                     <Checkbox
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                      disabled={watchIsDynamic}
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">

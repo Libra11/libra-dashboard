@@ -7,7 +7,6 @@
 "use client";
 
 import { useState, useEffect, Fragment } from "react";
-import { fetchApi } from "@/lib/fetch";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -33,6 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "next-intl";
+import { deleteMenu, getAllMenus } from "@/api/menus";
 
 interface MenuWithChildren extends Menu {
   children: MenuWithChildren[];
@@ -50,10 +50,8 @@ export default function MenusPage() {
 
   const fetchMenus = async () => {
     try {
-      const data = await fetchApi<{ menus: Menu[] }>({
-        url: "/api/menus/all",
-      });
-      setMenus(data.menus);
+      const menus = await getAllMenus();
+      setMenus(menus);
     } catch (error) {
       console.error("Failed to fetch menus:", error);
       toast({
@@ -73,10 +71,7 @@ export default function MenusPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetchApi({
-        url: `/api/menus/${deleteId}`,
-        method: "DELETE",
-      });
+      await deleteMenu(deleteId);
       toast({
         title: t("common.success"),
         description: t("dashboard.menus.deleteSuccess"),

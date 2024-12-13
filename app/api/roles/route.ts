@@ -74,7 +74,7 @@ export async function POST(req: Request) {
       throw new Error("Database connection failed");
     }
 
-    const { name, permissions, menus } = await req.json();
+    const { name, permissionIds, menuIds } = await req.json();
 
     // 检查角色名是否已存在
     const existingRole = await prisma.role.findUnique({
@@ -89,10 +89,10 @@ export async function POST(req: Request) {
       data: {
         name,
         permissions: {
-          connect: permissions.map((id: string) => ({ id })),
+          connect: permissionIds.map((id: string) => ({ id })),
         },
         menus: {
-          connect: menus.map((id: string) => ({ id })),
+          connect: menuIds.map((id: string) => ({ id })),
         },
       },
       include: {

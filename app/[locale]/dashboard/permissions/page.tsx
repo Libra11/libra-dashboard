@@ -7,7 +7,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchApi } from "@/lib/fetch";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -33,6 +32,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTranslations } from "next-intl";
+import { deletePermission, getPermissions } from "@/api/permissions";
 
 export default function PermissionsPage() {
   const t = useTranslations();
@@ -46,10 +46,8 @@ export default function PermissionsPage() {
 
   const fetchPermissions = async () => {
     try {
-      const data = await fetchApi<Permission[]>({
-        url: "/api/permissions",
-      });
-      setPermissions(data);
+      const permissions = await getPermissions();
+      setPermissions(permissions);
     } catch (error) {
       console.error("Failed to fetch permissions:", error);
       toast({
@@ -69,10 +67,7 @@ export default function PermissionsPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetchApi({
-        url: `/api/permissions/${deleteId}`,
-        method: "DELETE",
-      });
+      await deletePermission(deleteId);
       toast({
         title: t("common.success"),
         description: t("dashboard.permissions.deleteSuccess"),

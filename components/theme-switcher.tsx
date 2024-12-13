@@ -7,30 +7,19 @@ import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 
 export function ThemeSwitcher() {
-  const { mode, setMode } = useThemeStore();
+  const { mode: _, setMode } = useThemeStore();
   const t = useTranslations("theme.switcher");
 
-  // 初始化时同步系统主题
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = () => {
-      if (mode === "system") {
-        document.documentElement.classList.toggle("dark", mediaQuery.matches);
-      }
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, [mode]);
-
   // 监听主题变化
+  const mode = JSON.parse(localStorage.getItem("theme-storage") || "{}")?.state
+    .mode;
   useEffect(() => {
-    const isDark =
-      mode === "dark" ||
-      (mode === "system" &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.classList.toggle("dark", isDark);
-  }, [mode]);
+    if (mode) {
+      setTimeout(() => {
+        setMode(mode);
+      }, 0);
+    }
+  }, []);
 
   return (
     <Button

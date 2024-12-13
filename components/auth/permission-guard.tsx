@@ -12,6 +12,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { getLocale } from "next-intl/server";
+import { useLocaleStore } from "@/store/locale";
 
 interface PermissionGuardProps {
   children: ReactNode;
@@ -20,12 +22,17 @@ interface PermissionGuardProps {
 const PermissionGuard = ({ children }: PermissionGuardProps) => {
   const { data: session } = useSession();
   const router = useRouter();
-  const pathname = usePathname();
+  let pathname = usePathname();
   const [hasAccess, setHasAccess] = useState(true);
+  const { locale } = useLocaleStore();
 
   useEffect(() => {
     if (!session?.user) {
       return;
+    }
+    // 先考虑语言，如果不是中文，则去掉语言部分
+    if (locale !== "zh") {
+      pathname = pathname.slice(3);
     }
 
     const userMenus = session.user.role?.menus || [];
@@ -37,8 +44,6 @@ const PermissionGuard = ({ children }: PermissionGuardProps) => {
         // pathname /dashboard/users/1
         const pathPattern = menu.path.replace(/\[([^\]]+)\]/g, "([^/]+)");
         const regex = new RegExp(`^${pathPattern.replace(/\//g, "\\/")}$`);
-
-        console.log(regex, pathname, regex.test(pathname));
         if (regex.test(pathname)) {
           hasAccess = true;
           break;
@@ -51,7 +56,7 @@ const PermissionGuard = ({ children }: PermissionGuardProps) => {
       }
     }
 
-    setHasAccess(true);
+    setHasAccess(hasAccess);
   }, [session, pathname]);
 
   if (!hasAccess) {

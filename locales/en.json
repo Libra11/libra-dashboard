@@ -108,7 +108,8 @@
       "dynamic": "Dynamic",
       "dynamic_true": "Yes",
       "dynamic_false": "No",
-      "dynamicName": "Dynamic Name"
+      "dynamicName": "Dynamic Name",
+      "updateSuccess": "Menu updated successfully"
     },
     "permissions": {
       "title": "Permissions",
@@ -165,7 +166,12 @@
     "roles": "Roles",
     "settings": "Settings",
     "menus": "Menus",
-    "permissions": "Permissions"
+    "permissions": "Permissions",
+    "test": {
+      "title": "Test",
+      "second": "Second",
+      "id": "ID"
+    }
   },
   "theme": {
     "switcher": {

@@ -30,16 +30,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Role, Permission, Menu } from "@prisma/client";
-import { fetchApi } from "@/lib/fetch";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "next-intl";
-
-const formSchema = z.object({
-  name: z.string().min(1, "名称不能为空"),
-  description: z.string().optional(),
-  permissionIds: z.array(z.string()),
-  menuIds: z.array(z.string()),
-});
+import { roleFormSchema } from "@/schemas";
+import { createRole, updateRole } from "@/api/roles";
 
 interface RoleFormProps {
   open: boolean;
@@ -65,8 +59,8 @@ export function RoleForm({
   const { toast } = useToast();
   const [loading, setLoading] = React.useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof roleFormSchema>>({
+    resolver: zodResolver(roleFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -93,21 +87,13 @@ export function RoleForm({
     }
   }, [form, initialData]);
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof roleFormSchema>) => {
     try {
       setLoading(true);
       if (initialData) {
-        await fetchApi({
-          url: `/api/roles/${initialData.id}`,
-          method: "PUT",
-          body: values,
-        });
+        await updateRole(initialData.id, values);
       } else {
-        await fetchApi({
-          url: "/api/roles",
-          method: "POST",
-          body: values,
-        });
+        await createRole(values);
       }
       toast({
         title: t("common.success"),
@@ -253,7 +239,7 @@ export function RoleForm({
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel>{menu.name}</FormLabel>
+                              <FormLabel>{t(menu.name)}</FormLabel>
                             </div>
                           </FormItem>
                         )}

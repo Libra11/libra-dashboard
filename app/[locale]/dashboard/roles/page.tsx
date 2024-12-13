@@ -8,7 +8,6 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
-import { fetchApi } from "@/lib/fetch";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -34,14 +33,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-
-interface RoleWithRelations extends Role {
-  permissions: Permission[];
-  menus: Menu[];
-  _count: {
-    users: number;
-  };
-}
+import { deleteRole, getRoles, RoleWithRelations } from "@/api/roles";
+import { getPermissions } from "@/api/permissions";
+import { getAllMenus } from "@/api/menus";
 
 export default function RolesPage() {
   const t = useTranslations();
@@ -58,10 +52,8 @@ export default function RolesPage() {
 
   const fetchRoles = async () => {
     try {
-      const data = await fetchApi<RoleWithRelations[]>({
-        url: "/api/roles",
-      });
-      setRoles(data);
+      const roles = await getRoles();
+      setRoles(roles);
     } catch (error) {
       console.error("Failed to fetch roles:", error);
       toast({
@@ -76,10 +68,8 @@ export default function RolesPage() {
 
   const fetchPermissions = async () => {
     try {
-      const data = await fetchApi<Permission[]>({
-        url: "/api/permissions",
-      });
-      setPermissions(data);
+      const permissions = await getPermissions();
+      setPermissions(permissions);
     } catch (error) {
       console.error("Failed to fetch permissions:", error);
     }
@@ -87,10 +77,8 @@ export default function RolesPage() {
 
   const fetchMenus = async () => {
     try {
-      const data = await fetchApi<{ menus: Menu[] }>({
-        url: "/api/menus/all",
-      });
-      setMenus(data.menus);
+      const menus = await getAllMenus();
+      setMenus(menus);
     } catch (error) {
       console.error("Failed to fetch menus:", error);
     }
@@ -105,10 +93,7 @@ export default function RolesPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await fetchApi({
-        url: `/api/roles/${deleteId}`,
-        method: "DELETE",
-      });
+      await deleteRole(deleteId);
       toast({
         title: t("common.success"),
         description: t("dashboard.roles.deleteSuccess"),
