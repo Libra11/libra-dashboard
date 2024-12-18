@@ -5,7 +5,6 @@
  * Description:
  */
 import { AppSidebar } from "@/app/components/sidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import PermissionGuard from "@/components/auth/permission-guard";
 
 export default async function DashboardLayout({
@@ -14,18 +13,13 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <div className="flex h-screen w-screen p-8">
-        <div className="rounded-3xl flex bg-red-300 w-full h-full">
-          <div className="w-[16rem]">
-            <AppSidebar />
-          </div>
-          <main className="flex-1 overflow-auto p-8">
-            <SidebarTrigger />
-            <PermissionGuard>{children}</PermissionGuard>
-          </main>
-        </div>
+    <div className="flex h-screen w-screen p-4 bg-[hsl(var(--bg-color))]">
+      <div className="rounded-3xl flex gap-6 bg-gradient-to-b from-[hsl(var(--bg-inner-color2))] from-80% to-[hsl(var(--bg-inner-color1))] w-full h-full p-4">
+        <AppSidebar />
+        <main className="flex-1 overflow-auto p-6">
+          <PermissionGuard>{children}</PermissionGuard>
+        </main>
       </div>
-    </SidebarProvider>
+    </div>
   );
 }

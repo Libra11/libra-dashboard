@@ -4,6 +4,10 @@
 
 @layer base {
   :root {
+    --bg-icon: 0 0% 100%;
+    --bg-color: 207 28% 92%;
+    --bg-inner-color1: 156 38% 95%;
+    --bg-inner-color2: 204 26% 96%;
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -16,7 +20,7 @@
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --accent: 210 21% 93%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -35,6 +39,10 @@
   }
 
   [data-theme="blue"] {
+    --bg-icon: 0 0% 100%;
+    --bg-color: 207 28% 92%;
+    --bg-inner-color1: 240 30% 15%; /* 较浅的深蓝灰色 */
+    --bg-inner-color2: 240 24% 11%; /* 稍深的蓝灰色 */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -47,7 +55,7 @@
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --accent: 210 21% 93%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -63,6 +71,10 @@
   }
 
   [data-theme="green"] {
+    --bg-icon: 0 0% 100%;
+    --bg-color: 207 28% 92%;
+    --bg-inner-color1: 156 38% 95%;
+    --bg-inner-color2: 204 26% 96%;
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -75,8 +87,8 @@
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 210 21% 93%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
@@ -91,6 +103,10 @@
   }
 
   [data-theme="violet"] {
+    --bg-icon: 0 0% 100%;
+    --bg-color: 207 28% 92%;
+    --bg-inner-color1: 156 38% 95%;
+    --bg-inner-color2: 204 26% 96%;
     --background: 0 0% 100%;
     --foreground: 224 71.4% 4.1%;
     --card: 0 0% 100%;
@@ -103,8 +119,8 @@
     --secondary-foreground: 220.9 39.3% 11%;
     --muted: 220 14.3% 95.9%;
     --muted-foreground: 220 8.9% 46.1%;
-    --accent: 220 14.3% 95.9%;
-    --accent-foreground: 220.9 39.3% 11%;
+    --accent: 210 21% 93%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 20% 98%;
     --border: 220 13% 91%;
@@ -119,6 +135,10 @@
   }
 
   [data-theme="rose"] {
+    --bg-icon: 0 0% 100%;
+    --bg-color: 207 28% 92%;
+    --bg-inner-color1: 156 38% 95%;
+    --bg-inner-color2: 204 26% 96%;
     --background: 0 0% 100%;
     --foreground: 240 10% 3.9%;
     --card: 0 0% 100%;
@@ -131,8 +151,8 @@
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 210 21% 93%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
@@ -147,6 +167,10 @@
   }
 
   [data-theme="orange"] {
+    --bg-icon: 0 0% 100%;
+    --bg-color: 207 28% 92%;
+    --bg-inner-color1: 156 38% 95%;
+    --bg-inner-color2: 204 26% 96%;
     --background: 0 0% 100%;
     --foreground: 20 14.3% 4.1%;
     --card: 0 0% 100%;
@@ -159,8 +183,8 @@
     --secondary-foreground: 24 9.8% 10%;
     --muted: 60 4.8% 95.9%;
     --muted-foreground: 25 5.3% 44.7%;
-    --accent: 60 4.8% 95.9%;
-    --accent-foreground: 24 9.8% 10%;
+    --accent: 210 21% 93%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 60 9.1% 97.8%;
     --border: 20 5.9% 90%;
@@ -175,6 +199,10 @@
   }
 
   .dark {
+    --bg-icon: 222 11% 12%;
+    --bg-color: 27.3 27% 8%;
+    --bg-inner-color1: 240 30% 12%;
+    --bg-inner-color2: 240 24% 8%;
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222.2 84% 4.9%;
@@ -213,5 +241,41 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* 自定义滚动条样式 */
+  .scrollbar-thin {
+    scrollbar-width: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+    &:hover {
+      background-color: hsl(var(--muted-foreground) / 0.5);
+    }
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .scrollbar-hidden {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
   }
 }

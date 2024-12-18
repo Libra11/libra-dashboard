@@ -198,7 +198,13 @@
     "cancel": "取消",
     "save": "保存",
     "saving": "保存中...",
-    "success": "操作成功"
+    "success": "操作成功",
+    "settings": "设置",
+    "theme": "主题",
+    "color": "颜色",
+    "language": "语言",
+    "confirm": "确认",
+    "logoutConfirm": "确定要退出登录吗？"
   },
   "menu": {
     "home": "仪表盘",

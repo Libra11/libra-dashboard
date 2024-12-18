@@ -198,7 +198,13 @@
     "cancel": "Cancel",
     "save": "Save",
     "saving": "Saving...",
-    "success": "Success"
+    "success": "Success",
+    "settings": "Settings",
+    "theme": "Theme",
+    "color": "Color",
+    "language": "Language",
+    "confirm": "Confirm",
+    "logoutConfirm": "Are you sure you want to logout?"
   },
   "menu": {
     "home": "Dashboard",
