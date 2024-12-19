@@ -1,12 +1,12 @@
 /**
  * Author: Libra
- * Date: 2024-12-05 13:49:18
+ * Date: 2024-12-19 10:49:44
  * LastEditors: Libra
  * Description:
  */
 "use client";
 
-import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -35,65 +34,55 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Menu } from "@prisma/client";
-import { useToast } from "@/hooks/use-toast";
-import { useTranslations } from "next-intl";
-import { useEffect } from "react";
-import { menuFormSchema } from "@/schemas";
 import { createMenu, updateMenu } from "@/api/menus";
+import { useToast } from "@/hooks/use-toast";
+import { Switch } from "@/components/ui/switch";
+import { menuFormSchema } from "@/schemas";
+import { useEffect } from "react";
 
 interface MenuFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialData?: Menu;
-  parentMenus?: Menu[];
-  onSuccess?: () => void;
+  menus: Menu[];
+  onSuccess: () => void;
 }
 
 export function MenuForm({
   open,
   onOpenChange,
   initialData,
-  parentMenus = [],
+  menus,
   onSuccess,
 }: MenuFormProps) {
   const t = useTranslations();
   const { toast } = useToast();
-  const [loading, setLoading] = React.useState(false);
 
   const form = useForm<z.infer<typeof menuFormSchema>>({
     resolver: zodResolver(menuFormSchema),
     defaultValues: {
-      name: initialData?.name || "",
-      path: initialData?.path || "",
-      icon: initialData?.icon || "",
-      sort: initialData?.sort || 0,
-      parentId: initialData?.parentId || null,
-      isVisible: initialData?.isVisible ?? true,
-      isDynamic: initialData?.isDynamic ?? false,
-      dynamicName: initialData?.dynamicName || "id",
+      name: "",
+      path: "",
+      icon: "",
+      sort: 0,
+      parentId: "none",
+      isVisible: true,
+      isDynamic: false,
+      dynamicName: "",
     },
   });
 
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === "isDynamic" && value.isDynamic) {
-        form.setValue("isVisible", false);
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
-
-  React.useEffect(() => {
     if (initialData) {
       form.reset({
         name: initialData.name,
         path: initialData.path,
         icon: initialData.icon || "",
         sort: initialData.sort,
-        parentId: initialData.parentId,
+        parentId: initialData.parentId || "none",
         isVisible: initialData.isVisible,
         isDynamic: initialData.isDynamic,
-        dynamicName: initialData.dynamicName,
+        dynamicName: initialData.dynamicName || "",
       });
     } else {
       form.reset({
@@ -101,49 +90,44 @@ export function MenuForm({
         path: "",
         icon: "",
         sort: 0,
-        parentId: null,
+        parentId: "none",
         isVisible: true,
         isDynamic: false,
-        dynamicName: "id",
+        dynamicName: "",
       });
     }
   }, [form, initialData]);
 
   const onSubmit = async (values: z.infer<typeof menuFormSchema>) => {
     try {
-      setLoading(true);
       if (initialData) {
         await updateMenu(initialData.id, values);
+        toast({
+          title: t("common.success"),
+          description: t("dashboard.menus.updateSuccess"),
+        });
       } else {
         await createMenu(values);
+        toast({
+          title: t("common.success"),
+          description: t("dashboard.menus.createSuccess"),
+        });
       }
-      toast({
-        title: t("common.success"),
-        description: t(
-          initialData
-            ? "dashboard.menus.updateSuccess"
-            : "dashboard.menus.createSuccess"
-        ),
-      });
+      onSuccess();
       onOpenChange(false);
-      onSuccess?.();
     } catch (error) {
-      console.error(error);
+      console.error("Failed to save menu:", error);
       toast({
         title: t("common.error"),
         description: t("dashboard.menus.error"),
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  const watchIsDynamic = form.watch("isDynamic");
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
             {initialData
@@ -199,7 +183,7 @@ export function MenuForm({
                 <FormItem>
                   <FormLabel>{t("dashboard.menus.sort")}</FormLabel>
                   <FormControl>
-                    <Input type="number" {...field} />
+                    <Input type="number" min={0} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -212,10 +196,10 @@ export function MenuForm({
                 <FormItem>
                   <FormLabel>{t("dashboard.menus.parent")}</FormLabel>
                   <Select
-                    onValueChange={(value) =>
-                      field.onChange(value === "null" ? null : value)
-                    }
-                    value={field.value || "null"}
+                    onValueChange={(value) => {
+                      field.onChange(value === "none" ? null : value);
+                    }}
+                    value={field.value || "none"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -225,14 +209,16 @@ export function MenuForm({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="null">
+                      <SelectItem value="none">
                         {t("dashboard.menus.noParent")}
                       </SelectItem>
-                      {parentMenus.map((menu) => (
-                        <SelectItem key={menu.id} value={menu.id}>
-                          {t(menu.name)}
-                        </SelectItem>
-                      ))}
+                      {menus
+                        .filter((menu) => menu.id !== initialData?.id)
+                        .map((menu) => (
+                          <SelectItem key={menu.id} value={menu.id}>
+                            {menu.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -243,17 +229,16 @@ export function MenuForm({
               control={form.control}
               name="isVisible"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                  <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      disabled={watchIsDynamic}
-                    />
-                  </FormControl>
-                  <div className="space-y-1 leading-none">
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
                     <FormLabel>{t("dashboard.menus.visible")}</FormLabel>
                   </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />
@@ -261,20 +246,20 @@ export function MenuForm({
               control={form.control}
               name="isDynamic"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel>{t("dashboard.menus.dynamic")}</FormLabel>
+                  </div>
                   <FormControl>
-                    <Checkbox
+                    <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel>{t("dashboard.menus.dynamic")}</FormLabel>
-                  </div>
                 </FormItem>
               )}
             />
-            {watchIsDynamic && (
+            {form.watch("isDynamic") && (
               <FormField
                 control={form.control}
                 name="dynamicName"
@@ -297,8 +282,10 @@ export function MenuForm({
               >
                 {t("common.cancel")}
               </Button>
-              <Button type="submit" disabled={loading}>
-                {loading ? t("common.saving") : t("common.save")}
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting
+                  ? t("common.saving")
+                  : t("common.save")}
               </Button>
             </div>
           </form>

@@ -6,7 +6,8 @@
  */
 "use client";
 
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -16,11 +17,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { format } from "date-fns";
-import { ChevronDown, ChevronRight, Plus, Pencil, Trash } from "lucide-react";
+import { Plus, Pencil, Trash, ChevronRight } from "lucide-react";
 import { Menu } from "@prisma/client";
-import { MenuForm } from "@/components/forms/menu-form";
+import { Badge } from "@/components/ui/badge";
+import { Loading } from "@/app/components/loading";
+import { getAllMenus, deleteMenu } from "@/api/menus";
 import { useToast } from "@/hooks/use-toast";
+import { MenuForm } from "@/components/forms/menu-form";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,8 +34,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useTranslations } from "next-intl";
-import { deleteMenu, getAllMenus } from "@/api/menus";
+import Icon from "@/app/components/icons";
+import * as Icons from "lucide-react";
+import { cn } from "@/lib/utils";
+import React from "react";
 
 interface MenuWithChildren extends Menu {
   children: MenuWithChildren[];
@@ -41,12 +46,14 @@ interface MenuWithChildren extends Menu {
 export default function MenusPage() {
   const t = useTranslations();
   const { toast } = useToast();
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [menus, setMenus] = useState<Menu[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>(
+    {}
+  );
 
   const fetchMenus = async () => {
     try {
@@ -81,7 +88,7 @@ export default function MenusPage() {
       console.error("Failed to delete menu:", error);
       toast({
         title: t("common.error"),
-        description: t("dashboard.menus.deleteChildrenError"),
+        description: t("dashboard.menus.error"),
         variant: "destructive",
       });
     } finally {
@@ -89,30 +96,18 @@ export default function MenusPage() {
     }
   };
 
-  const toggleRow = (id: string) => {
-    setExpandedRows((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
-
-  const buildMenuTree = (menus: Menu[]): MenuWithChildren[] => {
+  const buildMenuTree = (items: Menu[]): MenuWithChildren[] => {
     const menuMap = new Map<string, MenuWithChildren>();
     const tree: MenuWithChildren[] = [];
 
-    menus.forEach((menu) => {
-      menuMap.set(menu.id, { ...menu, children: [] });
+    items.forEach((item) => {
+      menuMap.set(item.id, { ...item, children: [] });
     });
 
-    menus.forEach((menu) => {
-      const node = menuMap.get(menu.id)!;
-      if (menu.parentId) {
-        const parent = menuMap.get(menu.parentId);
+    items.forEach((item) => {
+      const node = menuMap.get(item.id)!;
+      if (item.parentId) {
+        const parent = menuMap.get(item.parentId);
         if (parent) {
           parent.children.push(node);
         }
@@ -124,68 +119,98 @@ export default function MenusPage() {
     return tree;
   };
 
-  const renderMenuRow = (
-    menu: MenuWithChildren,
-    level: number = 0
-  ): JSX.Element => {
+  const toggleExpand = (menuId: string) => {
+    setExpandedMenus((prev) => ({
+      ...prev,
+      [menuId]: !prev[menuId],
+    }));
+  };
+
+  const renderMenuItem = (menu: MenuWithChildren, level = 0) => {
     const hasChildren = menu.children.length > 0;
-    const isExpanded = expandedRows.has(menu.id);
+    const isExpanded = expandedMenus[menu.id];
+
+    const handleEdit = () => {
+      const fullMenu = menus.find((m) => m.id === menu.id);
+      if (fullMenu) {
+        setSelectedMenu(fullMenu);
+        setIsFormOpen(true);
+      }
+    };
 
     return (
-      <Fragment key={menu.id}>
-        <TableRow>
-          <TableCell className="font-medium">
-            <div
-              className="flex items-center"
-              style={{ paddingLeft: `${level * 24}px` }}
-            >
+      <React.Fragment key={menu.id}>
+        <TableRow
+          className="
+            border-b 
+            border-[hsl(var(--bg-icon))] 
+            hover:bg-[hsl(var(--accent))] 
+            transition-all 
+            duration-200 
+            cursor-pointer
+          "
+        >
+          <TableCell className="px-6 py-4">
+            <div className="flex items-center gap-3">
               {hasChildren && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4"
-                  onClick={() => toggleRow(menu.id)}
+                <button
+                  onClick={() => toggleExpand(menu.id)}
+                  className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-[hsl(var(--bg-icon))]"
                 >
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </Button>
+                  <ChevronRight
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      isExpanded && "transform rotate-90"
+                    )}
+                  />
+                </button>
               )}
-              <span className="ml-1">{t(menu.name)}</span>
+              {!hasChildren && <div className="w-6" />}
+              <div className="h-10 w-10 rounded-full bg-[hsl(var(--bg-icon))] flex items-center justify-center">
+                {menu.icon ? (
+                  <Icon
+                    name={menu.icon as keyof typeof Icons}
+                    className="h-5 w-5 text-[hsl(var(--primary))]"
+                  />
+                ) : (
+                  <span className="text-sm font-medium">
+                    {menu.name[0].toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className={cn("flex flex-col", level > 0 && "ml-4")}>
+                <p className="text-sm font-medium">{t(menu.name)}</p>
+                {menu.parentId && (
+                  <p className="text-xs text-muted-foreground">
+                    {t(menus.find((m) => m.id === menu.parentId)?.name)}
+                  </p>
+                )}
+              </div>
             </div>
           </TableCell>
-          <TableCell>
-            {menu.isDynamic ? (
-              <div className="space-y-1">
-                <div>{menu.path}</div>
-                <div className="text-sm text-muted-foreground">
-                  {t("dashboard.menus.dynamicName")}: {menu.dynamicName}
-                </div>
-              </div>
-            ) : (
-              menu.path
+          <TableCell className="px-6 py-4 text-sm text-muted-foreground min-w-[380px]">
+            {menu.path}
+          </TableCell>
+          <TableCell className="px-6 py-4">
+            {menu.icon && (
+              <Badge
+                variant="secondary"
+                className="rounded-lg bg-[hsl(var(--bg-icon))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--bg-icon))]"
+              >
+                {menu.icon}
+              </Badge>
             )}
           </TableCell>
-          <TableCell>{menu.sort}</TableCell>
-          <TableCell>
-            {menu.isVisible
-              ? t("dashboard.menus.visible_true")
-              : t("dashboard.menus.visible_false")}
+          <TableCell className="px-6 py-4 text-sm text-muted-foreground">
+            {menu.sort}
           </TableCell>
-          <TableCell>
-            {format(new Date(menu.createdAt), "yyyy-MM-dd HH:mm:ss")}
-          </TableCell>
-          <TableCell>
-            <div className="flex items-center gap-2">
+          <TableCell className="px-6 py-4">
+            <div className="flex items-center justify-end gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => {
-                  setSelectedMenu(menu);
-                  setIsFormOpen(true);
-                }}
+                onClick={handleEdit}
+                className="h-8 w-8 rounded-lg hover:bg-[hsl(var(--bg-icon))]"
               >
                 <Pencil className="h-4 w-4" />
               </Button>
@@ -193,6 +218,7 @@ export default function MenusPage() {
                 variant="ghost"
                 size="icon"
                 onClick={() => setDeleteId(menu.id)}
+                className="h-8 w-8 rounded-lg hover:bg-[hsl(var(--bg-icon))]"
               >
                 <Trash className="h-4 w-4" />
               </Button>
@@ -203,55 +229,72 @@ export default function MenusPage() {
           isExpanded &&
           menu.children
             .sort((a, b) => a.sort - b.sort)
-            .map((child) => renderMenuRow(child, level + 1))}
-      </Fragment>
+            .map((child) => renderMenuItem(child, level + 1))}
+      </React.Fragment>
     );
   };
 
   if (loading) {
-    return <div>{t("dashboard.menus.loading")}</div>;
+    return <Loading text={t("dashboard.menus.loading")} />;
   }
 
-  const menuTree = buildMenuTree(menus);
-
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between">
-        <h2 className="text-2xl font-bold">{t("dashboard.menus.title")}</h2>
+    <div className="flex-1 space-y-6 p-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">
+            {t("dashboard.menus.title")}
+          </h2>
+          <p className="text-muted-foreground">
+            {t("dashboard.menus.description")}
+          </p>
+        </div>
         <Button
           onClick={() => {
             setSelectedMenu(null);
             setIsFormOpen(true);
           }}
+          className="h-10 px-4 py-2 rounded-xl bg-[hsl(var(--primary))]"
         >
           <Plus className="mr-2 h-4 w-4" />
           {t("dashboard.menus.create")}
         </Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>{t("dashboard.menus.name")}</TableHead>
-            <TableHead>{t("dashboard.menus.path")}</TableHead>
-            <TableHead>{t("dashboard.menus.sort")}</TableHead>
-            <TableHead>{t("dashboard.menus.visible")}</TableHead>
-            <TableHead>{t("dashboard.menus.createdAt")}</TableHead>
-            <TableHead>{t("dashboard.menus.actions")}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {menuTree
-            .sort((a, b) => a.sort - b.sort)
-            .map((menu) => renderMenuRow(menu))}
-        </TableBody>
-      </Table>
+      <div className="rounded-2xl border border-[hsl(var(--bg-icon))] shadow-[0_10px_20px_rgba(0,0,0,0.05)] bg-transparent overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-b border-[hsl(var(--bg-icon))] hover:bg-transparent">
+              <TableHead className="h-12 px-6 text-sm font-medium text-muted-foreground">
+                {t("dashboard.menus.name")}
+              </TableHead>
+              <TableHead className="h-12 px-6 text-sm font-medium text-muted-foreground">
+                {t("dashboard.menus.path")}
+              </TableHead>
+              <TableHead className="h-12 px-6 text-sm font-medium text-muted-foreground">
+                {t("dashboard.menus.icon")}
+              </TableHead>
+              <TableHead className="h-12 px-6 text-sm font-medium text-muted-foreground">
+                {t("dashboard.menus.sort")}
+              </TableHead>
+              <TableHead className="h-12 px-6 text-sm font-medium text-muted-foreground text-right">
+                {t("dashboard.menus.actions")}
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {buildMenuTree(menus)
+              .sort((a, b) => a.sort - b.sort)
+              .map((menu) => renderMenuItem(menu))}
+          </TableBody>
+        </Table>
+      </div>
 
       <MenuForm
         open={isFormOpen}
         onOpenChange={setIsFormOpen}
         initialData={selectedMenu || undefined}
-        parentMenus={menus}
+        menus={menus}
         onSuccess={fetchMenus}
       />
 

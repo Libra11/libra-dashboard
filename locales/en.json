@@ -26,7 +26,7 @@
     }
   },
   "dashboard": {
-    "welcome": "Welcome back, {email}",
+    "welcome": "Welcome back,",
     "description": "This is your personal dashboard",
     "overview": {
       "title": "Overview",

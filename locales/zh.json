@@ -26,7 +26,7 @@
     }
   },
   "dashboard": {
-    "welcome": "欢迎回来，{email}",
+    "welcome": "欢迎回来，",
     "description": "这是您的个人仪表盘",
     "overview": {
       "title": "概览",

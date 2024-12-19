@@ -24,6 +24,7 @@ import Logo from "@/public/logo.svg";
 import { SettingsDialog } from "@/app/components/settings-dialog";
 import { LogOut } from "lucide-react";
 import { LogoutDialog } from "@/app/components/logout-dialog";
+import { useThemeStore } from "@/store/theme";
 
 interface MenuTreeItem extends Menu {
   children: MenuTreeItem[];
@@ -37,6 +38,19 @@ export function AppSidebar() {
   const [menuItems, setMenuItems] = useState<Menu[]>([]);
   const [collapsed, setCollapsed] = useState(false);
   const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+  const { mode: _, setMode } = useThemeStore();
+
+  // 监听主题变化
+  const mode = JSON.parse(localStorage.getItem("theme-storage") || "{}")?.state
+    .mode;
+
+  useEffect(() => {
+    if (mode) {
+      setTimeout(() => {
+        setMode(mode);
+      }, 0);
+    }
+  }, []);
 
   // 获取菜单数据
   useEffect(() => {

@@ -3,7 +3,6 @@
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useThemeStore } from "@/store/theme";
-import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 
 export function ThemeSwitcher() {
@@ -13,13 +12,6 @@ export function ThemeSwitcher() {
   // 监听主题变化
   const mode = JSON.parse(localStorage.getItem("theme-storage") || "{}")?.state
     .mode;
-  useEffect(() => {
-    if (mode) {
-      setTimeout(() => {
-        setMode(mode);
-      }, 0);
-    }
-  }, []);
 
   return (
     <Button
